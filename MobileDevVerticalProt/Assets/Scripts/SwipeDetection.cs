@@ -8,17 +8,83 @@ public class SwipeDetection : MonoBehaviour
     [SerializeField] private PlayerMovement m_Player;
     private Vector2 m_FingerStartPos;
     private Vector2 m_SwipeDelta;
-    private bool m_FingerDown;
-
+    public bool m_FingerDown;
     private void Start()
     {
         Reset();
     }
     private void Update()
     {
+        if(enabled)
+        {
+
+            StartCoroutine(WaitForInput());
+
+            if (m_FingerDown)
+            {
+                m_SwipeDelta = Input.touches[0].position - m_FingerStartPos;
+            }
+
+            if (m_SwipeDelta.magnitude > 125)
+            {
+                float x = m_SwipeDelta.x;
+                float y = m_SwipeDelta.y;
+
+                if (Mathf.Abs(x) > Mathf.Abs(y))
+                {
+                    if (x < 0)
+                    {
+                        Debug.Log("Left");
+                        if (m_Player.m_ConstantForce.force == Vector3.zero)
+                        {
+                            
+                            m_Player.Movement(Vector3.left);
+
+                        }
+                    }
+                    else
+                    {
+                        if (m_Player.m_ConstantForce.force == Vector3.zero )
+                        {
+                            
+                            m_Player.Movement(Vector3.right);
+                        }
+                        Debug.Log("Right");
+                    }
+                }
+                else
+                {
+                    if (y < 0)
+                    {
+                        if (m_Player.m_ConstantForce.force == Vector3.zero)
+                        {
+                            m_Player.Movement(Vector3.back);
+                        }
+                        Debug.Log("Down");
+                    }
+                    else
+                    {
+                        if (m_Player.m_ConstantForce.force == Vector3.zero )
+                        {
+                            m_Player.Movement(Vector3.forward);
+                        }
+                        Debug.Log("Up");
+                    }
+                }
+
+                Reset();
+            }
+        }
+        
+    }
+
+    IEnumerator WaitForInput()
+    {
+        yield return new WaitForSeconds(0.4f);
+        
         if (Input.touchCount > 0)
         {
-            if(Input.touches[0].phase == TouchPhase.Began)
+            if (Input.touches[0].phase == TouchPhase.Began)
             {
                 m_FingerStartPos = Input.touches[0].position;
                 m_FingerDown = true;
@@ -31,43 +97,7 @@ public class SwipeDetection : MonoBehaviour
             }
 
         }
-        
 
-        if(m_FingerDown)
-        {
-            m_SwipeDelta = Input.touches[0].position - m_FingerStartPos;
-        }
-
-        if(m_SwipeDelta.magnitude > 125)
-        {
-            float x = m_SwipeDelta.x;
-            float y = m_SwipeDelta.y;
-
-            if(Mathf.Abs(x) > Mathf.Abs(y))
-            {
-                if(x < 0)
-                {
-                    Debug.Log("Left");
-                }
-                else
-                {
-                    Debug.Log("Right");
-                }
-            }
-            else
-            {
-                if (y < 0)
-                {
-                    Debug.Log("Down");
-                }
-                else
-                {
-                    Debug.Log("Up");
-                }
-            }
-
-            Reset();
-        }
     }
 
     private void Reset()
