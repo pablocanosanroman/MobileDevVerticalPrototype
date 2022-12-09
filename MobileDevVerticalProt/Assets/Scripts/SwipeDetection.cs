@@ -6,88 +6,124 @@ using UnityEngine;
 public class SwipeDetection : MonoBehaviour
 {
     [SerializeField] private PlayerMovement m_Player;
+    public List<GameObject> m_RotateableObjects;
+    private ObjectRotation m_ObjectToRotate;
     private Vector2 m_FingerStartPos;
     private Vector2 m_SwipeDelta;
     public bool m_FingerDown;
+    private RaycastHit m_Hit;
     private void Start()
     {
         Reset();
     }
     private void Update()
     {
-        if(enabled)
+        StartCoroutine(WaitForInput());
+
+        //if (m_Player.m_IsMoving)
+        //{
+        //    m_ObjectToRotate = null;
+        //}
+            
+
+        
+
+        if (Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Began)
         {
+            Ray ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
 
-            StartCoroutine(WaitForInput());
-
-            if (m_FingerDown)
+            foreach (GameObject rotateableObject in m_RotateableObjects)
             {
-                m_SwipeDelta = Input.touches[0].position - m_FingerStartPos;
-            }
-
-            if (m_SwipeDelta.magnitude > 125)
-            {
-                float x = m_SwipeDelta.x;
-                float y = m_SwipeDelta.y;
-
-                if (Mathf.Abs(x) > Mathf.Abs(y))
+                if (Physics.Raycast(ray, out m_Hit))
                 {
-                    if (x < 0)
+                    if (m_Hit.collider.gameObject == rotateableObject && m_Hit.collider.gameObject.CompareTag("RotateableObject") && !m_Player.m_IsMoving)
                     {
-                        Debug.Log("Left");
-                        if (m_Player.m_ConstantForce.force == Vector3.zero)
+                        m_ObjectToRotate = m_Hit.collider.gameObject.GetComponentInParent<ObjectRotation>();
+                        if (!m_ObjectToRotate.m_Rotating)
                         {
-                            
-                            m_Player.Movement(Vector3.left);
+                            m_Player.enabled = false;
+                            StartCoroutine(m_ObjectToRotate.RotationInterpolation());
+                            m_ObjectToRotate = null;
+                        }
 
-                        }
                     }
-                    else
+                }
+
+            }
+        }
+
+        if (m_FingerDown)
+        {
+            m_SwipeDelta = Input.touches[0].position - m_FingerStartPos;
+        }
+
+        if (m_SwipeDelta.magnitude > 125 && m_Player.enabled)
+        {
+               
+            float x = m_SwipeDelta.x;
+            float y = m_SwipeDelta.y;
+
+            if (Mathf.Abs(x) > Mathf.Abs(y))
+            {
+                if (x < 0)
+                {
+                    if (m_Player.m_ConstantForce.force == Vector3.zero)
                     {
-                        if (m_Player.m_ConstantForce.force == Vector3.zero )
-                        {
+                        Debug.Log("IsMoving");
                             
-                            m_Player.Movement(Vector3.right);
-                        }
-                        Debug.Log("Right");
+                        m_Player.Movement(Vector3.left);
+
                     }
                 }
                 else
                 {
-                    if (y < 0)
+                    if (m_Player.m_ConstantForce.force == Vector3.zero )
                     {
-                        if (m_Player.m_ConstantForce.force == Vector3.zero)
-                        {
-                            m_Player.Movement(Vector3.back);
-                        }
-                        Debug.Log("Down");
-                    }
-                    else
-                    {
-                        if (m_Player.m_ConstantForce.force == Vector3.zero )
-                        {
-                            m_Player.Movement(Vector3.forward);
-                        }
-                        Debug.Log("Up");
+                            
+                        m_Player.Movement(Vector3.right);
                     }
                 }
-
-                Reset();
             }
+            else
+            {
+                if (y < 0)
+                {
+                    if (m_Player.m_ConstantForce.force == Vector3.zero)
+                    {
+                        m_Player.Movement(Vector3.back);
+                    }
+                }
+                else
+                {
+                    if (m_Player.m_ConstantForce.force == Vector3.zero )
+                    {
+                        m_Player.Movement(Vector3.forward);
+                    }
+                }
+            }
+
+                
+            Reset();
         }
+        
         
     }
 
     IEnumerator WaitForInput()
     {
-        yield return new WaitForSeconds(0.4f);
+        yield return new WaitForSeconds(0.1f);
         
         if (Input.touchCount > 0)
         {
             if (Input.touches[0].phase == TouchPhase.Began)
             {
-                m_FingerStartPos = Input.touches[0].position;
-                m_FingerDown = true;
+                if(m_Player.enabled)
+                {
+                    m_FingerStartPos = Input.touches[0].position;
+                    m_FingerDown = true;
+                }
+                
+
                 //m_FingerStartPosOffset = new Vector2(m_FingerStartPos.x + m_Offset, m_FingerStartPos.y + m_Offset);
                 Debug.Log(m_FingerStartPos);
             }

@@ -47,6 +47,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_RotationSpeed: 1
+  m_Player: {fileID: 0}
+  m_SwipeScript: {fileID: 0}
   m_Rotating: 0
 --- !u!65 &6890552563469188462
 BoxCollider:

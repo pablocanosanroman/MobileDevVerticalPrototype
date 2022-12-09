@@ -11,30 +11,49 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        if(m_IsMoving)
-        {
-            StartCoroutine(WaitForMove());
-        }
+        //if(m_IsMoving)
+        //{
+        //    StartCoroutine(WaitForMove());
+        //}
+    }
+
+    private void OnEnable()
+    {
+        m_IsMoving = false;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log("Collide");
+        //if (Mathf.Abs(m_PlayerRb.velocity.magnitude) < 0.1f)
+        //{
+        //    Debug.Log("StopMoving");
+        //    m_IsMoving = false;
+        //    m_ConstantForce.force = Vector3.zero;
+        //    m_PlayerRb.isKinematic = true;
+        //}
+        StartCoroutine(WaitForMove());
     }
     public void Movement(Vector3 direction)
     {
+        Debug.Log("Move");
         m_IsMoving = true;
         m_PlayerRb.isKinematic = false;
         m_ConstantForce.force = direction * m_Force;
 
     }
 
+
     IEnumerator WaitForMove()
     {
         yield return new WaitForSeconds(0.1f);
-        if(Mathf.Abs(m_PlayerRb.velocity.magnitude) < 0.1f)
+        if (Mathf.Abs(m_PlayerRb.velocity.magnitude) < 0.1f)
         {
+            Debug.Log("StopMoving");
             m_IsMoving = false;
             m_ConstantForce.force = Vector3.zero;
             m_PlayerRb.isKinematic = true;
-            StopCoroutine(WaitForMove());
         }
     }
-
 
 }
